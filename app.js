@@ -20,12 +20,32 @@ app.post("/extract", async (req, res) => {
     // Load the HTML content into Cheerio
     const $ = cheerio.load(response.data);
 
-    // Select and extract text from all <p> tags
-    const pText = $(".job-box-loop .col-lg-8 .title")
-      .map((index, element) => $(element).text())
+    // Select all job cards
+    const jobCards = $(".job-box-loop .row");
+
+    // Extract data for each card
+    const extractedData = jobCards
+      .map((index, cardElement) => {
+        const title = $(cardElement).find(".col-lg-8 .title a").text();
+        const jobsInPakistan = $(cardElement)
+          .find(".col-lg-8 p")
+          .first()
+          .text();
+        const jobType = $(cardElement).find(".col-lg-8 .job-type").text();
+        const applyNow = $(cardElement).find(".col-lg-2 .btn-secondary").text();
+        const quickView = $(cardElement).find(".col-lg-2 .bg-warning").text();
+
+        return {
+          title,
+          jobsInPakistan,
+          jobType,
+          applyNow,
+          quickView,
+        };
+      })
       .get();
 
-    res.status(200).send({ data: pText });
+    res.status(200).send({ data: extractedData });
   } catch (error) {
     console.error("Error fetching or processing the webpage:", error);
     res.status(500).send({ error: "Failed to fetch or process the webpage" });
